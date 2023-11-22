@@ -1,5 +1,5 @@
-﻿using Entities.Abstract;
-using Entities.Concrete;
+﻿
+using Core.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,10 +7,10 @@ using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DataAccess.Abstract
+namespace Core.DataAccess
 {
     //generic constraint 
-    //where T:class =>  referans tip olabilir <> içerisine int vs gelemez
+    //where T:class =>   referans tip olabilir <> içerisine int vs gelemez
     //where T: class,IEntity  =>   IEntity ya IEntity olabilir ya da IEntity den implemente edilen bir nesne olabilir (Entities içerisinkide classlar)
     //new () : new'lenebilir olmalı. IEntity interface olduğu için kullanamayız
     public interface IEntityRepository<T> where T : class, IEntity, new()
