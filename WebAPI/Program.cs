@@ -1,6 +1,9 @@
 
+using Autofac;
+using Autofac.Extensions.DependencyInjection;
 using Business.Abstract;
 using Business.Concrete;
+using Business.DependencyResolvers.Autofac;
 using DataAccess.Abstract;
 using DataAccess.Concrete.EntityFramework;
 
@@ -11,6 +14,13 @@ namespace WebAPI
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+
+
+            builder.Host.UseServiceProviderFactory(new AutofacServiceProviderFactory()); //autofac kullanýmý
+            builder.Host.ConfigureContainer<ContainerBuilder>(builder =>
+            {
+                builder.RegisterModule(new AutofacBusinessModule());
+            });
 
             // Add services to the container.
 
@@ -25,10 +35,10 @@ namespace WebAPI
             // isterse 1 milyon tane client gelsin hepsine ayný instence veriyor. 1milyon instence üretiminden kurtuluyoruz. hepsi ayný referansý kullanýyor.
             // ** singleton içerisinde data yoksa kullanýlýr
             //biri ctorda IProductService isterse ona arka planda new ProductManager ver
-            builder.Services.AddSingleton<IProductService, ProductManager>();
 
+            //builder.Services.AddSingleton<IProductService, ProductManager>();
             //Productmanager IProductDal a baðýmlý
-            builder.Services.AddSingleton<IProductDal, EfProductDal>();
+            //builder.Services.AddSingleton<IProductDal, EfProductDal>();
 
 
 
