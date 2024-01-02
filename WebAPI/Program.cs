@@ -1,11 +1,14 @@
-
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using Business.Abstract;
 using Business.Concrete;
 using Business.DependencyResolvers.Autofac;
-using DataAccess.Abstract;
-using DataAccess.Concrete.EntityFramework;
+using Core.Utilities.IoC;
+using Core.Utilities.Security.Encryption;
+using Core.Utilities.Security.JWT;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.IdentityModel.Tokens;
+
 
 namespace WebAPI
 {
@@ -21,6 +24,8 @@ namespace WebAPI
             {
                 builder.RegisterModule(new AutofacBusinessModule());
             });
+
+
 
             // Add services to the container.
 
@@ -40,7 +45,26 @@ namespace WebAPI
             //Productmanager IProductDal a baðýmlý
             //builder.Services.AddSingleton<IProductDal, EfProductDal>();
 
+            // Add services to the container.
+            var tokenOptions = builder.Configuration.GetSection("TokenOptions").Get<TokenOptions>();
 
+            builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+
+            builder.Services.AddAuthentication(Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme)
+                .AddJwtBearer(options =>
+                {
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuer = true,
+                        ValidateAudience = true,
+                        ValidateLifetime = true,
+                        ValidIssuer = tokenOptions.Issuer,
+                        ValidAudience = tokenOptions.Audience,
+                        ValidateIssuerSigningKey = true,
+                        IssuerSigningKey = SecurityKeyHelper.CreateSecurityKey(tokenOptions.SecurityKey)
+                    };
+                });
+            ServiceTool.Create(builder.Services);
 
 
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -59,6 +83,8 @@ namespace WebAPI
             app.UseHttpsRedirection();
 
             app.UseAuthorization();
+
+            app.UseAuthentication(); //middleware => aspnet yaþam döngüsünde hangi yapýlarýn sýrasýyla devreye gireceðini söyleriz
 
 
             app.MapControllers();
