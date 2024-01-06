@@ -26,7 +26,8 @@ namespace Business.BusinessAspects
             //serviceTool, bizim injection altyapımızı aynen okuyabilmemizi sağlayan bir araçtır.
             //.net in service lerini al ve onları build et.
             //Kısaca bu kod webAPI de ya da autofac de oluşturduğumuz injectionları oluşturabilmemizi sağlıyor.
-            //controller business çağırıyor   business dal çağırıyor o zincirin içerisinde bu yok o yüzden injection yapamayız o yüzden servicetool kullanırız
+
+            // **controller business çağırıyor   business dal çağırıyor o zincirin içerisinde bu yok o yüzden injection yapamayız o yüzden servicetool kullanırız**
           
         }
 

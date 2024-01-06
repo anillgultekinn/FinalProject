@@ -1,12 +1,12 @@
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
-using Business.Abstract;
-using Business.Concrete;
 using Business.DependencyResolvers.Autofac;
+using Core.DependencyResolvers;
+using Core.Extensions;
 using Core.Utilities.IoC;
 using Core.Utilities.Security.Encryption;
 using Core.Utilities.Security.JWT;
-using Microsoft.Extensions.DependencyInjection;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 
 
@@ -48,7 +48,10 @@ namespace WebAPI
             // Add services to the container.
             var tokenOptions = builder.Configuration.GetSection("TokenOptions").Get<TokenOptions>();
 
-            builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+            //builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+            //core katmanýna taþýdýk 
+            //HttpContextAccessor => her yapýlan isteklerde (add,update,delete vs vs ) baþlangýçtan bitiþe kadar  kullanýcýn  isteðinin takip edilme iþlemi  HttpContextAccessor yapar
+
 
             builder.Services.AddAuthentication(Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>
@@ -64,8 +67,14 @@ namespace WebAPI
                         IssuerSigningKey = SecurityKeyHelper.CreateSecurityKey(tokenOptions.SecurityKey)
                     };
                 });
-            ServiceTool.Create(builder.Services);
 
+            //bu yapý sayesinde tüm sistemde çalýþan baðýmlýlýklarý yönetebiliriz.
+
+            builder.Services.AddDependencyResolvers(new ICoreModule[]
+           {
+                new CoreModule(),
+           });
+             
 
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();

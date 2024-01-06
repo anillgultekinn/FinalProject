@@ -2,21 +2,14 @@
 using Business.BusinessAspects;
 using Business.Constants;
 using Business.ValidationRules.FluentValidation;
+using Core.Aspects.Autofac.Caching;
+using Core.Aspects.Autofac.Transaction;
 using Core.Aspects.Autofac.Validation;
-using Core.CrossCuttingConcerns.Validation;
 using Core.Utilities.Business;
 using Core.Utilities.Results;
 using DataAccess.Abstract;
-using DataAccess.Concrete.InMemory;
 using Entities.Concrete;
 using Entities.DTOs;
-using FluentValidation;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Business.Concrete;
 
@@ -34,12 +27,12 @@ public class ProductManager : IProductService
 
     [SecuredOperation("product.add,admin")]
     [ValidationAspect(typeof(ProductValidator))] // add metodunu productvalidator a göre doğrular
+    [CacheRemoveAspect("IProductService.Get")]
     public IResult Add(Product product)
     {
 
         IResult result = BusinessRules.Run(CheckIfProductNameExists(product.ProductName),
-              CheckIfProductCountOfCategoryCount(product.CategoryId), CheckIfCategoryLimitExceded()); //buradaki resulta neden hatalı bir mesaj geliyor
-        //hoca result kurala uymayan logic dedi ???
+              CheckIfProductCountOfCategoryCount(product.CategoryId), CheckIfCategoryLimitExceded());
 
 
         if (result != null) //kurala uymayan bir durum oluşmuşsa
@@ -52,6 +45,8 @@ public class ProductManager : IProductService
 
     }
 
+
+    [CacheAspect]
     public IDataResult<List<Product>> GetAll()
     {
         if (DateTime.Now.Hour == 22)
@@ -69,6 +64,7 @@ public class ProductManager : IProductService
 
     }
 
+    [CacheAspect]
     public IDataResult<Product> GetById(int productId)
     {
         return new SuccessDataResult<Product>(_productDal.Get(p => p.ProductId == productId));
@@ -86,6 +82,8 @@ public class ProductManager : IProductService
         return new SuccessDataResult<List<ProductDetailDto>>(_productDal.GetProductDetails());
     }
 
+    [ValidationAspect(typeof(ProductValidator))]
+    [CacheRemoveAspect("IProductService.Get")] //bellekteki içerisinde Get olan bütün keyleri iptal et dolayısıyla ürünü güncellersek her yerdeki cache sileriz
     public IResult Update(Product product)
     {
         throw new NotImplementedException();
@@ -123,5 +121,17 @@ public class ProductManager : IProductService
 
     }
 
+    [TransactionScopeAspect]
+    public IResult AddTransactionalTest(Product product)
+    {
+        Add(product);
+        if (product.UnitPrice < 10)
+        {
+            throw new Exception("");
+        }
+
+        Add(product);
+        return null;
+    }
 }
 
